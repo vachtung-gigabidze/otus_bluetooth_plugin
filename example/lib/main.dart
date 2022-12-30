@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:otus_bluetooth_plugin/otus_bluetooth_plugin.dart';
 
 void main() {
+  WidgetsFlutterBinding.ensureInitialized();
   runApp(const MyApp());
 }
 
@@ -55,7 +56,13 @@ class _MyAppState extends State<MyApp> {
           title: const Text('Plugin example app'),
         ),
         body: Center(
-          child: Text('Running on: $_platformVersion\n'),
+          child: Column(
+            children: [
+              SizedBox(height: 24,
+                  child: AndroidView(viewType: "bluetoothview"),),
+              Text('Running on: $_platformVersion\n'),
+            ],
+          ),
         ),
       ),
     );

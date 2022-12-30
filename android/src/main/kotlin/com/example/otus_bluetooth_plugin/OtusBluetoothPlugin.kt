@@ -3,8 +3,14 @@ package com.example.otus_bluetooth_plugin
 import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothDevice
 import android.bluetooth.le.*
+import android.content.Context
 import android.os.Build
 import android.util.Log
+import android.view.View
+import android.view.ViewGroup
+import android.widget.ArrayAdapter
+import android.widget.ListView
+import android.widget.TextView
 import androidx.annotation.NonNull
 import androidx.annotation.RequiresApi
 import io.flutter.embedding.engine.plugins.FlutterPlugin
@@ -12,16 +18,21 @@ import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
 import io.flutter.plugin.common.MethodChannel.MethodCallHandler
 import io.flutter.plugin.common.MethodChannel.Result
+import io.flutter.plugin.common.StandardMessageCodec
+import io.flutter.plugin.platform.PlatformView
+import io.flutter.plugin.platform.PlatformViewFactory
 
-
-/** OtusBluetoothPlugin */
 @RequiresApi(Build.VERSION_CODES.LOLLIPOP)
-class OtusBluetoothPlugin: FlutterPlugin, MethodCallHandler {
-  /// The MethodChannel that will the communication between Flutter and native Android
-  ///
-  /// This local reference serves to register the plugin with the Flutter Engine and unregister it
-  /// when the Flutter Engine is detached from the Activity
-  private lateinit var channel : MethodChannel
+class BlueToothViewFactory : PlatformViewFactory(StandardMessageCodec.INSTANCE)
+{
+
+  override fun create(context: Context?, viewId: Int, args: Any?): PlatformView {
+    return BlueToothView(context)
+  }
+}
+
+@RequiresApi(Build.VERSION_CODES.LOLLIPOP)
+class BlueToothView(context: Context?) : PlatformView {
 
   private lateinit var list : MutableList<String>
 
@@ -34,7 +45,25 @@ class OtusBluetoothPlugin: FlutterPlugin, MethodCallHandler {
 
   private val foundDevices = HashMap<String, BluetoothDevice>()
 
+  var view : ListView
+
+  val language = arrayOf<String>("C","C++","Java",".Net","Kotlin","Ruby","Rails","Python","Java Script","Php","Ajax","Perl","Hadoop")
+
+
+
   init {
+    view =  ListView(context)
+    val adapter = object : ArrayAdapter<String>(context!!, android.R.layout.simple_list_item_1, language) {
+      override fun getView(position: Int, convertView: View?, parent: ViewGroup): View {
+        val view = super.getView(position, convertView, parent)
+        val text1 = view.findViewById(android.R.id.text1) as TextView
+        text1.setText(language[position])
+        return view
+      }
+    }
+    view.adapter = adapter
+    //view.atext = "Hello"
+
     settings = buildSetting()
     filters = buildFilter()
   }
@@ -78,17 +107,34 @@ class OtusBluetoothPlugin: FlutterPlugin, MethodCallHandler {
 
   }
 
+  override fun getView(): View? = view
+
+  override fun dispose() {
+    TODO("Not yet implemented")
+  }
+}
+
+/** OtusBluetoothPlugin */
+@RequiresApi(Build.VERSION_CODES.LOLLIPOP)
+class OtusBluetoothPlugin: FlutterPlugin, MethodCallHandler {
+  /// The MethodChannel that will the communication between Flutter and native Android
+  ///
+  /// This local reference serves to register the plugin with the Flutter Engine and unregister it
+  /// when the Flutter Engine is detached from the Activity
+  private lateinit var channel : MethodChannel
+
+  
+
   override fun onAttachedToEngine(@NonNull flutterPluginBinding: FlutterPlugin.FlutterPluginBinding) {
+    flutterPluginBinding.platformViewRegistry.registerViewFactory("bluetoothview", BlueToothViewFactory())
     channel = MethodChannel(flutterPluginBinding.binaryMessenger, "otus_bluetooth_plugin")
     channel.setMethodCallHandler(this)
   }
 
-//  @RequiresApi(Build.VERSION_CODES.P)
+
   override fun onMethodCall(@NonNull call: MethodCall, @NonNull result: Result) {
      if (call.method == "getPlatformVersion") {
       result.success("Android ${android.os.Build.VERSION.RELEASE}")
-
-
 
     } else {
       result.notImplemented()
