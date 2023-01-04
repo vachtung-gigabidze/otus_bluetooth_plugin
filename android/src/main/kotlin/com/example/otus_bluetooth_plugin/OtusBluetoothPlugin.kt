@@ -1,6 +1,7 @@
 package com.example.otus_bluetooth_plugin
 
 import android.Manifest
+import android.app.Activity
 import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothDevice
 import android.bluetooth.BluetoothManager
@@ -14,6 +15,7 @@ import android.view.View
 import android.widget.*
 import androidx.annotation.NonNull
 import androidx.annotation.RequiresApi
+import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
@@ -59,7 +61,11 @@ class BlueToothView(context: Context?) : PlatformView {
   var listView: ListView
   var linearLayout: LinearLayout
   var button: Button
-  val language = arrayOf<String>("C","C++","Java",".Net","Kotlin","Ruby","Rails","Python","Java Script","Php","Ajax","Perl","Hadoop")
+  val language = arrayOf<String>("C++",".Net","Ruby","Python","Php","Perl")
+  val language2 = arrayOf<String>("C","Java","Kotlin","Rails","Java Script","Ajax","Hadoop")
+  var adapter : ArrayAdapter<String>
+  lateinit var mContext: Context
+  private final val RUNTIME_PERMISSION_REQUEST_CODE = 2
 
   private val bleScanner by lazy {
     bluetoothAdapter.bluetoothLeScanner
@@ -75,13 +81,17 @@ class BlueToothView(context: Context?) : PlatformView {
     .setScanMode(ScanSettings.SCAN_MODE_LOW_LATENCY)
     .build()
 
-  private val scanCallback = object : ScanCallback() {
-    override fun onScanResult(callbackType: Int, result: ScanResult) {
-      with(result.device) {
-        Log.i("ScanCallback", "Found BLE device! Name: ${name ?: "Unnamed"}, address: $address")
-      }
-    }
-  }
+  private val scanCallback = BleScanCallback()
+//    object : ScanCallback() {
+//    override fun onScanResult(callbackType: Int, result: ScanResult) {
+//      adapter = ArrayAdapter<String>(context!!, android.R.layout.simple_list_item_1, android.R.id.text1, language2)
+//      with(result.device) {
+//        Log.i("ScanCallback", "Found BLE device! Name: ${name ?: "Unnamed"}, address: $address")
+//      }
+//    }
+//  }
+
+
 
   private var isScanning = false
     set(value) {
@@ -89,73 +99,52 @@ class BlueToothView(context: Context?) : PlatformView {
       button.text = if (value) "Stop Scan" else "Start Scan"
     }
 
-  private val scanResults = mutableListOf<ScanResult>()
-//  private val scanResultAdapter: ScanResultAdapter by lazy {
-//    ScanResultAdapter(scanResults) {
-//      // TODO: Implement
-//    }
-//  }
-
   init {
-//    val manager = context?.getSystemService(Context.BLUETOOTH_SERVICE) as BluetoothManager
-//    adapter = manager.adapter
-    //settings = buildSetting()
-   // filters = buildFilter()
-   // startScan()
+    view = TextView(context)
+    view.setBackgroundColor(Color.rgb(255, 255, 255))
+    view.text = "Rendered on a native Android view (id: 3)"
+
     button = Button(context)
     button.text = "Find Device"
     button.setOnClickListener {
-      startBleScan()
-
+      if (isScanning) {
+        this.view.text = "Stop"
+        stopBleScan()
+      } else {
+        this.view.text = "Start"
+        startBleScan()
+      }
     }
-    view = TextView(context)
-//    view.textSize = 72f
-    view.setBackgroundColor(Color.rgb(255, 255, 255))
-    view.text = "Rendered on a native Android view (id: 3)"
+
     listView =  ListView(context)
-    val adapter = ArrayAdapter<String>(context!!, android.R.layout.simple_list_item_1, android.R.id.text1, language)
+    adapter = ArrayAdapter<String>(context!!, android.R.layout.simple_list_item_1, android.R.id.text1, language)
     listView.adapter = adapter
     //view.atext = "Hello"
     linearLayout = LinearLayout(context)
+
     linearLayout.orientation = LinearLayout.VERTICAL
+    linearLayout.addView(view)
     linearLayout.addView(button)
     linearLayout.addView(listView)
-    button.text = "Start Find Device"
+    isScanning = false;
+   // button.text = "Start Find Device"
 
 
   }
 
   override fun getView(): View? = linearLayout
 
-//  private fun buildSetting() =
-//    ScanSettings.Builder()
-//      .setScanMode(ScanSettings.SCAN_MODE_LOW_LATENCY).build()
 
-  //private fun buildFilter() = listOf(ScanFilter.Builder().build())
+  fun startBleScan() {
 
-
-
-  fun startBleScan(){
     bleScanner.startScan(null, scanSettings, scanCallback)
-//      if (callback == null){
-//       // callback = BleScanCallback()
-//      //  scanner = adapter.bluetoothLeScanner
-//        scanner?.startScan(null, scanSettings, scanCallback)
-//       // scanner?.startScan(filters, settings, callback)
-//      }
+    isScanning = true
   }
 
   private fun stopBleScan() {
     bleScanner.stopScan(scanCallback)
     isScanning = false
   }
-//  fun stopScan(){
-//    if (callback != null){
-//      scanner?.stopScan(callback)
-//      scanner = null
-//      callback = null
-//    }
-//  }
 
   inner class BleScanCallback : ScanCallback() {
     override fun onScanResult(callbackType: Int, result: ScanResult) {

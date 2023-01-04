@@ -32,8 +32,8 @@ class _MyAppState extends State<MyApp> {
     // Platform messages may fail, so we use a try/catch PlatformException.
     // We also handle the message potentially returning null.
     try {
-      platformVersion =
-          await _otusBluetoothPlugin.getPlatformVersion() ?? 'Unknown platform version';
+      platformVersion = await _otusBluetoothPlugin.getPlatformVersion() ??
+          'Unknown platform version';
     } on PlatformException {
       platformVersion = 'Failed to get platform version.';
     }
@@ -58,8 +58,10 @@ class _MyAppState extends State<MyApp> {
         body: Center(
           child: Column(
             children: [
-              SizedBox(height: 24,
-                  child: AndroidView(viewType: "bluetoothview"),),
+              SizedBox(
+                height: 500,
+                child: AndroidView(viewType: "bluetoothview"),
+              ),
               Text('Running on: $_platformVersion\n'),
             ],
           ),
