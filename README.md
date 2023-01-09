@@ -1,4 +1,6 @@
-# otus_bluetooth_plugin
+# otus_plugin_bluetooth
+Student project
 
 
+Plugin Bluetooth Otus
 

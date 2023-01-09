@@ -1,6 +1,6 @@
-# otus_bluetooth_plugin_example
+# otus_plugin_bluetooth_example
 
-Demonstrates how to use the otus_bluetooth_plugin plugin.
+Demonstrates how to use the otus_plugin_bluetooth plugin.
 
 ## Getting Started
 

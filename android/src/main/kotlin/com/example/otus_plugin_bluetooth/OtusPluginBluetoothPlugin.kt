@@ -1,13 +1,13 @@
-package com.example.otus_bluetooth_plugin
+package com.example.otus_plugin_bluetooth
 
-import android.Manifest
-import android.app.Activity
 import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothDevice
 import android.bluetooth.BluetoothManager
-import android.bluetooth.le.*
+import android.bluetooth.le.ScanCallback
+import android.bluetooth.le.ScanResult
+import android.bluetooth.le.ScanSettings
 import android.content.Context
-import android.content.pm.PackageManager
+import android.content.Intent
 import android.graphics.Color
 import android.os.Build
 import android.util.Log
@@ -15,8 +15,7 @@ import android.view.View
 import android.widget.*
 import androidx.annotation.NonNull
 import androidx.annotation.RequiresApi
-import androidx.core.app.ActivityCompat
-import androidx.core.content.ContextCompat
+import androidx.core.app.ActivityCompat.startActivityForResult
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import io.flutter.embedding.engine.plugins.FlutterPlugin
@@ -28,32 +27,21 @@ import io.flutter.plugin.common.StandardMessageCodec
 import io.flutter.plugin.platform.PlatformView
 import io.flutter.plugin.platform.PlatformViewFactory
 
+
 @RequiresApi(Build.VERSION_CODES.LOLLIPOP)
 class BlueToothViewFactory : PlatformViewFactory(StandardMessageCodec.INSTANCE)
 {
 
-  override fun create(context: Context?, viewId: Int, args: Any?): PlatformView {
+  override fun create(context: Context, viewId: Int, args: Any?): PlatformView {
     return BlueToothView(context)
   }
 }
 
 @RequiresApi(Build.VERSION_CODES.LOLLIPOP)
-class BlueToothView(context: Context?) : PlatformView {
+class BlueToothView(context: Context) : PlatformView {
 
-//  private lateinit var list : MutableList<String>
+
   private val _devices: MutableLiveData<List<BluetoothDevice>> = MutableLiveData()
-  val devices: LiveData<List<BluetoothDevice>> get() = _devices
-
-//  private var adapter =  BluetoothAdapter.getDefaultAdapter()
-//  private val bluetoothAdapter: BluetoothAdapter by lazy {
-//    val bluetoothManager = getSystemService(Context.BLUETOOTH_SERVICE) as BluetoothManager
-//    bluetoothManager.adapter
-//  }
-//  private var scanner : BluetoothLeScanner? = null
-//  private var callback : BleScanCallback? = null
-
- // private val settings: ScanSettings
- // private val filters: List<ScanFilter>
 
   private val foundDevices = HashMap<String, BluetoothDevice>()
 
@@ -61,8 +49,7 @@ class BlueToothView(context: Context?) : PlatformView {
   var listView: ListView
   var linearLayout: LinearLayout
   var button: Button
-  val language = arrayOf<String>("C++",".Net","Ruby","Python","Php","Perl")
-  val language2 = arrayOf<String>("C","Java","Kotlin","Rails","Java Script","Ajax","Hadoop")
+  val deviceList = arrayOf<String>("")
   var adapter : ArrayAdapter<String>
   lateinit var mContext: Context
   private final val RUNTIME_PERMISSION_REQUEST_CODE = 2
@@ -73,23 +60,19 @@ class BlueToothView(context: Context?) : PlatformView {
 
   // From the previous section:
   private val bluetoothAdapter: BluetoothAdapter by lazy {
-    val bluetoothManager = context?.getSystemService(Context.BLUETOOTH_SERVICE) as BluetoothManager
+    val bluetoothManager = context.getSystemService(Context.BLUETOOTH_SERVICE) as BluetoothManager
     bluetoothManager.adapter
   }
+
+
+
 
   private val scanSettings = ScanSettings.Builder()
     .setScanMode(ScanSettings.SCAN_MODE_LOW_LATENCY)
     .build()
 
   private val scanCallback = BleScanCallback()
-//    object : ScanCallback() {
-//    override fun onScanResult(callbackType: Int, result: ScanResult) {
-//      adapter = ArrayAdapter<String>(context!!, android.R.layout.simple_list_item_1, android.R.id.text1, language2)
-//      with(result.device) {
-//        Log.i("ScanCallback", "Found BLE device! Name: ${name ?: "Unnamed"}, address: $address")
-//      }
-//    }
-//  }
+
 
 
 
@@ -100,9 +83,10 @@ class BlueToothView(context: Context?) : PlatformView {
     }
 
   init {
+    mContext = context
     view = TextView(context)
     view.setBackgroundColor(Color.rgb(255, 255, 255))
-    view.text = "Rendered on a native Android view (id: 3)"
+    view.text = "Rendered on a native Android view (id: 4)"
 
     button = Button(context)
     button.text = "Find Device"
@@ -117,7 +101,7 @@ class BlueToothView(context: Context?) : PlatformView {
     }
 
     listView =  ListView(context)
-    adapter = ArrayAdapter<String>(context!!, android.R.layout.simple_list_item_1, android.R.id.text1, language)
+    adapter = ArrayAdapter<String>(context!!, android.R.layout.simple_list_item_1, android.R.id.text1, deviceList)
     listView.adapter = adapter
     //view.atext = "Hello"
     linearLayout = LinearLayout(context)
@@ -127,18 +111,24 @@ class BlueToothView(context: Context?) : PlatformView {
     linearLayout.addView(button)
     linearLayout.addView(listView)
     isScanning = false;
-   // button.text = "Start Find Device"
+    // button.text = "Start Find Device"
 
 
+  }
+
+  fun fillList(list: List<String>){
+    adapter = ArrayAdapter<String>(mContext, android.R.layout.simple_list_item_1, android.R.id.text1, list)
+    listView.adapter = adapter
   }
 
   override fun getView(): View? = linearLayout
 
 
   fun startBleScan() {
-
-    bleScanner.startScan(null, scanSettings, scanCallback)
-    isScanning = true
+    if (bluetoothAdapter.isEnabled) {
+      bleScanner.startScan(null, scanSettings, scanCallback)
+      isScanning = true
+    } else {view.text = "ble not enabled"}
   }
 
   private fun stopBleScan() {
@@ -148,19 +138,23 @@ class BlueToothView(context: Context?) : PlatformView {
 
   inner class BleScanCallback : ScanCallback() {
     override fun onScanResult(callbackType: Int, result: ScanResult) {
+      //view.text = result.device.name.toString()
       foundDevices[result.device.address] = result.device
-      _devices.postValue(foundDevices.values.toList())
+    //  _devices.postValue(foundDevices.values.toList())
+      fillList( foundDevices.values.map { bluetoothDevice -> bluetoothDevice.name.toString() }.toList())
     }
 
     override fun onBatchScanResults(results: MutableList<ScanResult>) {
+     // view.text = "result"
       results.forEach { result ->
         foundDevices[result.device.address] = result.device
       }
-      _devices.postValue(foundDevices.values.toList())
+     // _devices.postValue(foundDevices.values.toList())
     }
 
     override fun onScanFailed(errorCode: Int) {
-      Log.e("BluetoothScanner", "onScanFailed:  scan error $errorCode")
+      view.text = "error"
+      Log.e("Синийзуб>", "onScanFailed:  scan error $errorCode")
     }
   }
 
@@ -170,34 +164,28 @@ class BlueToothView(context: Context?) : PlatformView {
     stopBleScan()
   }
 }
-
-/** OtusBluetoothPlugin */
-@RequiresApi(Build.VERSION_CODES.LOLLIPOP)
-class OtusBluetoothPlugin: FlutterPlugin, MethodCallHandler {
+/** OtusPluginBluetoothPlugin */
+class OtusPluginBluetoothPlugin: FlutterPlugin, MethodCallHandler {
   /// The MethodChannel that will the communication between Flutter and native Android
   ///
   /// This local reference serves to register the plugin with the Flutter Engine and unregister it
   /// when the Flutter Engine is detached from the Activity
   private lateinit var channel : MethodChannel
 
-  
-
+  @RequiresApi(Build.VERSION_CODES.LOLLIPOP)
   override fun onAttachedToEngine(@NonNull flutterPluginBinding: FlutterPlugin.FlutterPluginBinding) {
     flutterPluginBinding.platformViewRegistry.registerViewFactory("bluetoothview", BlueToothViewFactory())
-    channel = MethodChannel(flutterPluginBinding.binaryMessenger, "otus_bluetooth_plugin")
+    channel = MethodChannel(flutterPluginBinding.binaryMessenger, "otus_plugin_bluetooth")
     channel.setMethodCallHandler(this)
   }
 
-
   override fun onMethodCall(@NonNull call: MethodCall, @NonNull result: Result) {
-     if (call.method == "getPlatformVersion") {
+    if (call.method == "getPlatformVersion") {
       result.success("Android ${android.os.Build.VERSION.RELEASE}")
-
     } else {
       result.notImplemented()
     }
   }
-
 
   override fun onDetachedFromEngine(@NonNull binding: FlutterPlugin.FlutterPluginBinding) {
     channel.setMethodCallHandler(null)

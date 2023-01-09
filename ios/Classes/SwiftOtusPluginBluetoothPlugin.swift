@@ -1,10 +1,10 @@
 import Flutter
 import UIKit
 
-public class SwiftOtusBluetoothPlugin: NSObject, FlutterPlugin {
+public class SwiftOtusPluginBluetoothPlugin: NSObject, FlutterPlugin {
   public static func register(with registrar: FlutterPluginRegistrar) {
-    let channel = FlutterMethodChannel(name: "otus_bluetooth_plugin", binaryMessenger: registrar.messenger())
-    let instance = SwiftOtusBluetoothPlugin()
+    let channel = FlutterMethodChannel(name: "otus_plugin_bluetooth", binaryMessenger: registrar.messenger())
+    let instance = SwiftOtusPluginBluetoothPlugin()
     registrar.addMethodCallDelegate(instance, channel: channel)
   }
 

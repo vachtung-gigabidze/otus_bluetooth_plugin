@@ -1,10 +1,10 @@
-name: otus_bluetooth_plugin
+name: otus_plugin_bluetooth
 description: A new Flutter project.
 version: 0.0.1
 homepage:
 
 environment:
-  sdk: '>=2.18.2 <3.0.0'
+  sdk: '>=2.18.6 <3.0.0'
   flutter: ">=2.5.0"
 
 dependencies:
@@ -16,6 +16,7 @@ dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^2.0.0
+
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
@@ -35,10 +36,10 @@ flutter:
   plugin:
     platforms:
       android:
-        package: com.example.otus_bluetooth_plugin
-        pluginClass: OtusBluetoothPlugin
+        package: com.example.otus_plugin_bluetooth
+        pluginClass: OtusPluginBluetoothPlugin
       ios:
-        pluginClass: OtusBluetoothPlugin
+        pluginClass: OtusPluginBluetoothPlugin
 
   # To add assets to your plugin package, add an assets section, like this:
   # assets:

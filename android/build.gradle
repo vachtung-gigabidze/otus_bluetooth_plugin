@@ -1,4 +1,4 @@
-group 'com.example.otus_bluetooth_plugin'
+group 'com.example.otus_plugin_bluetooth'
 version '1.0-SNAPSHOT'
 
 buildscript {
