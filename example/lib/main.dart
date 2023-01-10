@@ -61,7 +61,7 @@ class _MyAppState extends State<MyApp> {
                 height: 500,
                 child: AndroidView(viewType: "bluetoothview"),
               ),
-              Text('Running on: $_platformVersion\n'),
+              //Text('Running on: $_platformVersion\n'),
             ],
           ),
         ),
